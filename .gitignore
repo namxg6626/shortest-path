@@ -1,4 +1,5 @@
 BeFS_draft
-a.out
+*.out
 BeFS_draft.dSYM/
 .vscode
+*.exe

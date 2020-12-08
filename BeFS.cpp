@@ -1,18 +1,14 @@
 #include <iostream>
 #include <vector>
-#include <map>
 
 using namespace std;
 
 struct anchor
 {
     char label = '_';
-    unsigned int h = 0;
-    unsigned int g = 0;
-    unsigned int f = 0;
     vector<char> parents;
+    unsigned int h = 0;
     vector<char> childs;
-    map<char, int> cost;
 };
 
 vector<anchor> create_anchors()
@@ -32,7 +28,7 @@ vector<anchor> create_anchors()
 
         cout << "h: ";
         cin >> x.h;
-        
+
         cout << "number of parent: ";
         cin >> num_of_parent;
         for (int j = 0; j < num_of_parent; j++)
@@ -48,16 +44,14 @@ vector<anchor> create_anchors()
         for (int j = 0; j < num_of_child; j++)
         {
             char child_label;
-            int cost;
             cout << "child label " << j + 1 << ": ";
             cin >> child_label;
-            cout << "cost(" << x.label << ", " << child_label << "): ";
-            cin >> cost;
             x.childs.push_back(child_label);
-            x.cost.insert(std::pair<char, int>(child_label, cost));
         }
 
         anchors.push_back(x);
+
+        cout << endl;
     }
 
     return anchors;
@@ -66,23 +60,39 @@ vector<anchor> create_anchors()
 int get_min(vector<anchor> src)
 {
     int min_idx = 0;
-    int min_f = 9999999;
+    int min_h = 9999999;
     for (size_t i = 0; i < src.size(); i++)
-        if (src[i].f < min_f)
+        if (src[i].h < min_h)
         {
             min_idx = i;
-            min_f = src[i].f;
+            min_h = src[i].h;
         }
 
     return min_idx;
 }
 
-int get_anchor_idx_by_label(vector<anchor> anchors, char label)
+anchor get_anchor_by_label(vector<anchor> anchors, char label)
 {
+    anchor x;
     for (size_t i = 0; i < anchors.size(); i++)
         if (toupper(label) == toupper(anchors[i].label))
-            return i;
-    return -1;
+            x = anchors[i];
+
+    return x;
+}
+
+vector<char> combine_path(vector<char> src_path, anchor x) 
+{
+    for (size_t i = 0; i < src_path.size(); i++)
+        for (size_t j = 0; j < x.parents.size(); j++)
+            if (toupper(src_path[i]) == toupper(x.parents[j]))
+            {
+                src_path.resize(i + 1);
+                break;
+            }
+
+    src_path.push_back(x.label);
+    return src_path;
 }
 
 vector<char> befs(vector<anchor> anchors, char goal)
@@ -96,7 +106,7 @@ vector<char> befs(vector<anchor> anchors, char goal)
         int min_h_idx = get_min(open);
         anchor min_anchor = open[min_h_idx];
 
-        path.push_back(min_anchor.label);
+        path = combine_path(path, min_anchor);
 
         if (min_anchor.label == goal)
             break;
@@ -104,21 +114,12 @@ vector<char> befs(vector<anchor> anchors, char goal)
         for (size_t i = 0; i < min_anchor.childs.size(); i++) 
         {
             bool isExist = false;
-            char child_label = min_anchor.childs[i];
             for (size_t j = 0; j < open.size(); j++)
-                if (toupper(open[j].label) == toupper(child_label))
+                if (toupper(open[j].label) == toupper(min_anchor.childs[i]))
                     isExist = true;
 
             if (!isExist) 
-            {
-                int child_idx = get_anchor_idx_by_label(anchors, child_label);
-                int g = min_anchor.g + min_anchor.cost[child_label];
-                int f = g + anchors[child_idx].h;
-                anchors[child_idx].g = g;
-                anchors[child_idx].f = f;
-
-                open.push_back(anchors[child_idx]);
-            }
+                open.push_back(get_anchor_by_label(anchors, min_anchor.childs[i]));
         }
         
         close.push_back(min_anchor);
@@ -147,6 +148,5 @@ int main()
     return 0;
 }
 
-// a 14 0 4 c 9 d 7 e 13 f 20 / c 15 1 a 1 h 6 / d 6 1 a 2 h 8 e 4 / e 8 1 a 2 k 4 i 3 / f 7 1 a 2 i 6 g 4 / h 10 2 c d 1 k 5 / k 2 3 h e i 1 b 6 / i 4 2 e f 1 b 5 / g 12 1 f 0 / b 0 2 k i 0
-// a 14 0 4 c 9 d 7 e 13 f 20 c 15 1 a 1 h 6 d 6 1 a 2 h 8 e 4 e 8 1 a 2 k 4 i 3 f 7 1 a 2 i 6 g 4 h 10 2 c d 1 k 5 k 2 3 h e i 1 b 6 i 4 2 e f 1 b 5 g 12 1 f 0 b 0 2 k i 0
-// a 14 0 4 c 9 d 7 e 13 f 20 c 15 1 a 1 h 6 d 6 1 a 2 h 8 e 4 e 8 1 a 2 k 4 i 3 f 7 1 a 2 g 4 i 6 h 10 2 c d 1 k 5 k 2 3 h e i 1 b 6 i 4 2 e f 1 b 5 g 12 1 f 0 b 0 2 k i 0
+// a 14 0 4 c d e f / c 15 1 a 1 h / d 6 1 a 2 h e / e 8 1 a 2 k i / f 7 1 a 2 i g / h 10 2 c d 1 k / k 2 3 h e i 1 b / i 4 2 e f 1 b / g 12 1 f 0 / b 0 2 k i 0
+// a 14 0 4 c d e f c 15 1 a 1 h d 6 1 a 2 h e e 8 1 a 2 k i f 7 1 a 2 i g h 10 2 c d 1 k k 2 3 h e i 1 b i 4 2 e f 1 b g 12 1 f 0 b 0 2 k i 0 $
