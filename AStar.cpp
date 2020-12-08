@@ -31,6 +31,8 @@ vector<anchor> create_anchors()
         cout << "h: ";
         cin >> x.h;
 
+        x.edge.insert(std::pair<char, int>('A', 3));
+        
         cout << "number of parent: ";
         cin >> num_of_parent;
         for (int j = 0; j < num_of_parent; j++)
