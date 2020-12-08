@@ -85,44 +85,51 @@ int get_anchor_idx_by_label(vector<anchor> anchors, char label)
     return -1;
 }
 
-vector<char> befs(vector<anchor> anchors, char goal)
+vector<char> a_star(vector<anchor> anchors, char goal)
 {
     vector<anchor> open, close;
-    vector<char> path;
+    vector<char> path; // mảng lưu đường đi
     open.push_back(anchors[0]);
 
     while (open.size() != 0)
     {
-        int min_h_idx = get_min(open);
-        anchor min_anchor = open[min_h_idx];
+        int min_f_idx = get_min(open); // lay index thang co F nho nhat trong open
+        anchor min_anchor = open[min_f_idx];
 
-        path.push_back(min_anchor.label);
+        path.push_back(min_anchor.label); // thêm vào đường đi
 
         if (min_anchor.label == goal)
             break;
 
-        for (size_t i = 0; i < min_anchor.childs.size(); i++) 
+        // duyệt qua các đỉnh con của đỉnh đang xét
+        for (size_t i = 0; i < min_anchor.childs.size(); i++)
         {
-            bool isExist = false;
+            bool isExist = false; // vòng for để kiểm tra cái đỉnh nhỏ nhất có trong OPEN chưa, nếu có rồi thì không thêm vào OPEN
             char child_label = min_anchor.childs[i];
             for (size_t j = 0; j < open.size(); j++)
                 if (toupper(open[j].label) == toupper(child_label))
                     isExist = true;
 
+            // Thêm vào OPEN
             if (!isExist) 
             {
-                int child_idx = get_anchor_idx_by_label(anchors, child_label);
-                int g = min_anchor.g + min_anchor.cost[child_label];
-                int f = g + anchors[child_idx].h;
-                anchors[child_idx].g = g;
-                anchors[child_idx].f = f;
+                int child_idx = get_anchor_idx_by_label(anchors, child_label); // lấy index đỉnh con của đỉnh đang xét
+                anchor child_anchor = anchors[child_idx];
+                int g = min_anchor.g + min_anchor.cost[child_label]; // cộng dồn theo thuật toán
+                int f = g + anchors[child_idx].h; // cộng dồn theo thuật toán
+
+                // gán lại F và G sau khi cộng dồn vào đỉnh con
+                // từ đó sẽ tận dụng được ở các vòng lặp sau, cụ thể là ở dòng 96, hàm get_min()
+                child_anchor.g = g; 
+                child_anchor.f = f;
 
                 open.push_back(anchors[child_idx]);
             }
         }
         
+        // thêm đỉnh đang xét vào CLOSE, xóa khỏi OPEN
         close.push_back(min_anchor);
-        open.erase(open.begin() + min_h_idx);
+        open.erase(open.begin() + min_f_idx);
 
         cout << endl;
         for (size_t i = 0; i < path.size(); i++)
@@ -137,12 +144,12 @@ vector<char> befs(vector<anchor> anchors, char goal)
 int main()
 {
     vector<anchor> anchors = create_anchors();
-    vector<char> befs_path = befs(anchors, 'B');
+    vector<char> a_star_path = a_star(anchors, 'B');
     vector<int> chars;
 
     cout << endl;
-    for (int i = 0; i < befs_path.size(); i++)
-        cout << befs_path[i] << " ";
+    for (int i = 0; i < a_star_path.size(); i++)
+        cout << a_star_path[i] << " ";
 
     return 0;
 }
