@@ -123,7 +123,7 @@ vector<char> a_star(vector<anchor> anchors, char goal)
                 child_anchor.g = g; 
                 child_anchor.f = f;
 
-                open.push_back(anchors[child_idx]);
+                open.push_back(child_anchor);
             }
         }
         
