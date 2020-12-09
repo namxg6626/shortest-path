@@ -6,6 +6,7 @@ using namespace std;
 
 struct anchor
 {
+    char who_visit = '_';
     char label = '_';
     unsigned int h = 0;
     unsigned int g = 0;
@@ -85,6 +86,20 @@ int get_anchor_idx_by_label(vector<anchor> anchors, char label)
     return -1;
 }
 
+vector<char> combine_path(vector<char> src_path, anchor x) 
+{
+    for (size_t i = 0; i < src_path.size(); i++)
+        for (size_t j = 0; j < x.parents.size(); j++)
+            if (toupper(src_path[i]) == toupper(x.parents[j]))
+            {
+                src_path.resize(i + 1);
+                break;
+            }
+
+    src_path.push_back(x.label);
+    return src_path;
+}
+
 vector<char> a_star(vector<anchor> anchors, char goal)
 {
     vector<anchor> open, close;
@@ -97,7 +112,7 @@ vector<char> a_star(vector<anchor> anchors, char goal)
         anchor min_anchor = open[min_f_idx];
 
         path.push_back(min_anchor.label); // thêm vào đường đi
-
+        
         if (min_anchor.label == goal)
             break;
 
@@ -130,12 +145,6 @@ vector<char> a_star(vector<anchor> anchors, char goal)
         // thêm đỉnh đang xét vào CLOSE, xóa khỏi OPEN
         close.push_back(min_anchor);
         open.erase(open.begin() + min_f_idx);
-
-        cout << endl;
-        for (size_t i = 0; i < path.size(); i++)
-        {
-            cout << path[i] << " ";
-        }
     }
 
     return path;
@@ -147,7 +156,7 @@ int main()
     vector<char> a_star_path = a_star(anchors, 'B');
     vector<int> chars;
 
-    cout << endl;
+    cout << "Duong di la: ";
     for (int i = 0; i < a_star_path.size(); i++)
         cout << a_star_path[i] << " ";
 

@@ -94,7 +94,7 @@ vector<char> combine_path(vector<char> src_path, anchor x)
     return src_path;
 }
 
-vector<char> aT(vector<anchor> anchors, char goal)
+vector<char> aT(vector<anchor> anchors, char goal, int &total_cost)
 {
     vector<anchor> open, close;
     vector<char> path; // mảng lưu đường đi
@@ -129,6 +129,7 @@ vector<char> aT(vector<anchor> anchors, char goal)
                 // gán g sau khi cộng dồn vào đỉnh con
                 // từ đó sẽ tận dụng được ở các vòng lặp sau, cụ thể là ở dòng 96, hàm get_min()
                 child_anchor.g = g;
+                total_cost = g;
 
                 open.push_back(child_anchor);
             }
@@ -137,12 +138,6 @@ vector<char> aT(vector<anchor> anchors, char goal)
         // thêm đỉnh đang xét vào CLOSE, xóa khỏi OPEN
         close.push_back(min_anchor);
         open.erase(open.begin() + min_g_id);
-
-        cout << endl;
-        for (size_t i = 0; i < path.size(); i++)
-        {
-            cout << path[i] << " ";
-        }
     }
 
     return path;
@@ -151,13 +146,13 @@ vector<char> aT(vector<anchor> anchors, char goal)
 int main()
 {
     vector<anchor> anchors = create_anchors();
-    vector<char> path = aT(anchors, 'H');
-    vector<int> chars;
+    int total = 0;
+    vector<char> path = aT(anchors, 'H', total);
 
-    cout << endl;
+    cout << "Duong di la: p = ";
     for (int i = 0; i < path.size(); i++)
         cout << path[i] << " ";
-
+    cout << endl << "chi phi la cost(p) = " << total;
     return 0;
 }
 
